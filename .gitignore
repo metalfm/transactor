@@ -1,0 +1,5 @@
+.DS_Store
+.idea
+go.work
+go.work.sum
+.envrc
