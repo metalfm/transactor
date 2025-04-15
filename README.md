@@ -24,7 +24,7 @@ implementations while maintaining type safety at compile time.
 
 ```go
 type Transactor[T any] interface {
-InTx(ctx context.Context, fn func (T) error) error
+  InTx(ctx context.Context, fn func (T) error) error
 }
 ```
 
@@ -41,21 +41,21 @@ Example usage:
 package example
 
 type repoTx interface {
-	CreateUser(ctx context.Context, name string) error
-	CreateOrder(ctx context.Context, items []string) error
+  CreateUser(ctx context.Context, name string) error
+  CreateOrder(ctx context.Context, items []string) error
 }
 err := transactor.InTx(ctx, func (repo repoTx) error {
-	err := repo.CreateUser(ctx, "John Doe")
-	if err != nil {
-		return err
-	}
+  err := repo.CreateUser(ctx, "John Doe")
+  if err != nil {
+    return err
+  }
 
-	err = repo.CreateOrder(ctx, []string{"item1", "item2"})
-	if err != nil {
-		return err
-	}
+  err = repo.CreateOrder(ctx, []string{"item1", "item2"})
+  if err != nil {
+    return err
+  }
 
-	return nil
+  return nil
 })
 ```
 
@@ -75,24 +75,24 @@ The `trm.Transaction` interface, which extends `trm.Query`, is used for transact
 package trm
 
 import (
-	"context"
-	"database/sql"
+  "context"
+  "database/sql"
 )
 
 // Query — interface for executing SQL queries.
 type Query interface {
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
-	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
-	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+  ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+  PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
+  QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+  QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
 // Transaction — interface for transaction management.
 // Extends Query and adds Commit and Rollback methods.
 type Transaction interface {
-	Query
-	Commit() error
-	Rollback() error
+  Query
+  Commit() error
+  Rollback() error
 }
 ```
 
@@ -107,21 +107,21 @@ Example implementation of the factory method:
 package example
 
 import (
-	"github.com/metalfm/transactor/driver/sql/trm"
+  "github.com/metalfm/transactor/driver/sql/trm"
 )
 
 type RepoUser struct {
-	q trm.Query
+  q trm.Query
 }
 
 func NewRepoUser(q trm.Query) *RepoUser {
-	return &RepoUser{q}
+  return &RepoUser{q}
 }
 
 // WithTx example of a factory method
 // all methods of *RepoUser will be called within the transaction
 func (slf *RepoUser) WithTx(tx trm.Transaction) *RepoUser {
-	return &RepoUser{q: tx}
+  return &RepoUser{q: tx}
 }
 ```
 
@@ -139,27 +139,27 @@ interface for working with them, including performing operations within a single
 package example
 
 import (
-	"github.com/metalfm/transactor/driver/sql/trm"
+  "github.com/metalfm/transactor/driver/sql/trm"
 )
 
 type Adapter struct {
-	repoUser  *RepoUser
-	repoOrder *RepoOrder
+  repoUser  *RepoUser
+  repoOrder *RepoOrder
 }
 
 func NewAdapter(repoUser *svc.RepoUser, repoOrder *svc.RepoOrder) *Adapter {
-	return &Adapter{
-		repoUser:  repoUser,
-		repoOrder: repoOrder,
-	}
+  return &Adapter{
+    repoUser:  repoUser,
+    repoOrder: repoOrder,
+  }
 }
 
 // WithTx example of a factory method for combining logic from multiple repositories
 func (slf *Adapter) WithTx(tx trm.Transaction) *Adapter {
-	return &Adapter{
-		repoUser:  slf.repoUser.WithTx(tx),
-		repoOrder: slf.repoOrder.WithTx(tx),
-	}
+  return &Adapter{
+    repoUser:  slf.repoUser.WithTx(tx),
+    repoOrder: slf.repoOrder.WithTx(tx),
+  }
 }
 ```
 
@@ -188,49 +188,49 @@ Example:
 package app
 
 import (
-	"context"
-	"fmt"
-	"github.com/metalfm/transactor/tr"
+  "context"
+  "fmt"
+  "github.com/metalfm/transactor/tr"
 )
 
 // repoTx declares dependencies for business logic
 // all repository methods that will be used within the transaction
 type repoTx interface {
-	CreateUser(ctx context.Context, name string) error
-	CreateOrder(ctx context.Context, items []string) error
+  CreateUser(ctx context.Context, name string) error
+  CreateOrder(ctx context.Context, items []string) error
 }
 
 type Service[T repoTx] struct {
-	tr tr.Transactor[T]
+  tr tr.Transactor[T]
 }
 
 func NewService[T repoTx](tr tr.Transactor[T]) *Service[T] {
-	return &Service[T]{tr}
+  return &Service[T]{tr}
 }
 
 func (slf *Service[T]) Create(ctx context.Context, name string, items []string) error {
-	err := slf.tr.InTx(ctx, func(r T) error {
-		err := r.CreateUser(ctx, name)
-		if err != nil {
-			return fmt.Errorf("create user: %w", err)
-		}
+  err := slf.tr.InTx(ctx, func(r T) error {
+    err := r.CreateUser(ctx, name)
+    if err != nil {
+      return fmt.Errorf("create user: %w", err)
+    }
 
-		err = r.CreateOrder(ctx, items)
-		if err != nil {
-			return fmt.Errorf("create order: %w", err)
-		}
+    err = r.CreateOrder(ctx, items)
+    if err != nil {
+      return fmt.Errorf("create order: %w", err)
+    }
 
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("create user & order: %w", err)
-	}
+    return nil
+  })
+  if err != nil {
+    return fmt.Errorf("create user & order: %w", err)
+  }
 
-	return nil
+  return nil
 }
 ```
 
-You can find the full example here — [example](github.com/metalfm/transactor/tree/master/internal/example).
+You can find the full example here — [example](https://github.com/metalfm/transactor/tree/master/internal/example).
 
 ### 6. Testing and `trtest` Package
 
@@ -238,7 +238,7 @@ To simplify testing, the library provides the `trtest` package, which allows cre
 `Transactor[T any]` interface. This is useful for isolating business logic from the real database.
 
 Example usage of
-`trtest.MockTransactor` — [example](github.com/metalfm/transactor/tree/master/internal/example/app/service_test.go)
+`trtest.MockTransactor` — [example](https://github.com/metalfm/transactor/blob/master/internal/example/app/service_test.go)
 
 ## Benchmarks
 
@@ -332,5 +332,5 @@ significantly more allocations.
 
 ## License
 
-Transactor is licensed under the MIT License. See [LICENSE](github.com/metalfm/transactor/blob/main/LICENSE) for more
+Transactor is licensed under the MIT License. See [LICENSE](https://github.com/metalfm/transactor/blob/master/LICENSE) for more
 information.
