@@ -144,7 +144,7 @@ import (
 )
 
 type Adapter struct {
-    repoUser    *RepoUser
+    repoUser  *RepoUser
     repoOrder *RepoOrder
 }
 
