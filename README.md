@@ -24,7 +24,7 @@ implementations while maintaining type safety at compile time.
 
 ```go
 type Transactor[T any] interface {
-  InTx(ctx context.Context, fn func (T) error) error
+    InTx(ctx context.Context, fn func (T) error) error
 }
 ```
 
@@ -41,21 +41,22 @@ Example usage:
 package example
 
 type repoTx interface {
-  CreateUser(ctx context.Context, name string) error
-  CreateOrder(ctx context.Context, items []string) error
+    CreateUser(ctx context.Context, name string) error
+    CreateOrder(ctx context.Context, items []string) error
 }
+
 err := transactor.InTx(ctx, func (repo repoTx) error {
-  err := repo.CreateUser(ctx, "John Doe")
-  if err != nil {
-    return err
-  }
+    err := repo.CreateUser(ctx, "John Doe")
+    if err != nil {
+        return err
+    }
 
-  err = repo.CreateOrder(ctx, []string{"item1", "item2"})
-  if err != nil {
-    return err
-  }
+    err = repo.CreateOrder(ctx, []string{"item1", "item2"})
+    if err != nil {
+        return err
+    }
 
-  return nil
+    return nil
 })
 ```
 
@@ -75,24 +76,24 @@ The `trm.Transaction` interface, which extends `trm.Query`, is used for transact
 package trm
 
 import (
-  "context"
-  "database/sql"
+    "context"
+    "database/sql"
 )
 
 // Query — interface for executing SQL queries.
 type Query interface {
-  ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-  PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
-  QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
-  QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+    ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+    PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
+    QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+    QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
 // Transaction — interface for transaction management.
 // Extends Query and adds Commit and Rollback methods.
 type Transaction interface {
-  Query
-  Commit() error
-  Rollback() error
+    Query
+    Commit() error
+    Rollback() error
 }
 ```
 
@@ -107,21 +108,21 @@ Example implementation of the factory method:
 package example
 
 import (
-  "github.com/metalfm/transactor/driver/sql/trm"
+    "github.com/metalfm/transactor/driver/sql/trm"
 )
 
 type RepoUser struct {
-  q trm.Query
+    q trm.Query
 }
 
 func NewRepoUser(q trm.Query) *RepoUser {
-  return &RepoUser{q}
+    return &RepoUser{q}
 }
 
 // WithTx example of a factory method
 // all methods of *RepoUser will be called within the transaction
 func (slf *RepoUser) WithTx(tx trm.Transaction) *RepoUser {
-  return &RepoUser{q: tx}
+    return &RepoUser{q: tx}
 }
 ```
 
@@ -139,43 +140,43 @@ interface for working with them, including performing operations within a single
 package example
 
 import (
-  "github.com/metalfm/transactor/driver/sql/trm"
+    "github.com/metalfm/transactor/driver/sql/trm"
 )
 
 type Adapter struct {
-  repoUser  *RepoUser
-  repoOrder *RepoOrder
+    repoUser    *RepoUser
+    repoOrder *RepoOrder
 }
 
 func NewAdapter(repoUser *svc.RepoUser, repoOrder *svc.RepoOrder) *Adapter {
-  return &Adapter{
-    repoUser:  repoUser,
-    repoOrder: repoOrder,
-  }
+    return &Adapter{
+        repoUser:    repoUser,
+        repoOrder: repoOrder,
+    }
 }
 
 // WithTx example of a factory method for combining logic from multiple repositories
 func (slf *Adapter) WithTx(tx trm.Transaction) *Adapter {
-  return &Adapter{
-    repoUser:  slf.repoUser.WithTx(tx),
-    repoOrder: slf.repoOrder.WithTx(tx),
-  }
+    return &Adapter{
+        repoUser: slf.repoUser.WithTx(tx),
+        repoOrder: slf.repoOrder.WithTx(tx),
+    }
 }
 ```
 
 ### 4. Why is the Factory Method Better Than Passing Transactions Through Context?
 
 - **Explicitness**: Transactions are passed explicitly through the factory method, not hidden in the context, making the
-  code more readable and understandable.
+    code more readable and understandable.
 - **Safety**: Context is intended for passing request-related data (e.g., timeouts or metadata), not for managing
-  transaction state.
+    transaction state.
 - **Encapsulation**: The factory method isolates transaction logic within repositories, preventing it from spreading to
-  other parts of the code.
+    other parts of the code.
 - **Testability**: The factory method simplifies creating mocks for testing since the transaction remains part of the
-  repository interface.
+    repository interface.
 - **Performance**: Passing transactions through the factory method does not require additional operations, such as
-  extracting data from the context or type casting. This makes transaction management faster and more efficient compared
-  to using context.
+    extracting data from the context or type casting. This makes transaction management faster and more efficient compared
+    to using context.
 
 ### 5. Example Service
 
@@ -188,45 +189,45 @@ Example:
 package app
 
 import (
-  "context"
-  "fmt"
-  "github.com/metalfm/transactor/tr"
+    "context"
+    "fmt"
+    "github.com/metalfm/transactor/tr"
 )
 
 // repoTx declares dependencies for business logic
 // all repository methods that will be used within the transaction
 type repoTx interface {
-  CreateUser(ctx context.Context, name string) error
-  CreateOrder(ctx context.Context, items []string) error
+    CreateUser(ctx context.Context, name string) error
+    CreateOrder(ctx context.Context, items []string) error
 }
 
 type Service[T repoTx] struct {
-  tr tr.Transactor[T]
+    tr tr.Transactor[T]
 }
 
 func NewService[T repoTx](tr tr.Transactor[T]) *Service[T] {
-  return &Service[T]{tr}
+    return &Service[T]{tr}
 }
 
 func (slf *Service[T]) Create(ctx context.Context, name string, items []string) error {
-  err := slf.tr.InTx(ctx, func(r T) error {
-    err := r.CreateUser(ctx, name)
-    if err != nil {
-      return fmt.Errorf("create user: %w", err)
-    }
+    err := slf.tr.InTx(ctx, func(r T) error {
+        err := r.CreateUser(ctx, name)
+        if err != nil {
+            return fmt.Errorf("create user: %w", err)
+        }
 
-    err = r.CreateOrder(ctx, items)
+        err = r.CreateOrder(ctx, items)
+        if err != nil {
+            return fmt.Errorf("create order: %w", err)
+        }
+
+        return nil
+    })
     if err != nil {
-      return fmt.Errorf("create order: %w", err)
+        return fmt.Errorf("create user & order: %w", err)
     }
 
     return nil
-  })
-  if err != nil {
-    return fmt.Errorf("create user & order: %w", err)
-  }
-
-  return nil
 }
 ```
 
@@ -249,17 +250,17 @@ To run benchmarks on your machine, execute the following commands — `make up &
 The following libraries and approaches were used for benchmarking:
 
 1. **Native** — a basic approach using the standard `sql.DB` driver from Go's standard library without additional
-   abstractions.
+     abstractions.
 
 2. **⚡ Transactor** — the tested `Transactor` library, which provides the `Transactor[T any]` interface for transaction
-   management.
+     management.
 
 3. **[Avito](https://github.com/avito-tech/go-transaction-manager)** — an approach based on the transaction manager
-   implementation used in Avito projects. This approach includes passing transactions through context and using custom
-   interfaces.
+     implementation used in Avito projects. This approach includes passing transactions through context and using custom
+     interfaces.
 
 4. **[Aneshas](https://github.com/aneshas/tx)** — an alternative library for transaction management, which also uses
-   context but with a different architecture and dependency management approach.
+     context but with a different architecture and dependency management approach.
 
 Each approach was tested on identical scenarios to ensure an objective comparison of performance, memory consumption,
 and allocation count.
@@ -268,21 +269,21 @@ and allocation count.
 
 #### Execution Time (sec/op)
 
-| Metric     | Native      | ⚡ Transactor                  | Avito                    | Aneshas                  |
-|------------|-------------|-------------------------------|--------------------------|--------------------------|
-| **sec/op** | 263.2µ ± 2% | 261.4µ ± 1%  -0.68% (p=0.035) | 266.3µ ± 3%  ~ (p=0.265) | 261.5µ ± 1%  ~ (p=0.056) |
+| Metric     | Native      | ⚡ Transactor                    | Avito                      | Aneshas                    |
+|------------|-------------|---------------------------------|----------------------------|----------------------------|
+| **sec/op** | 263.2µ ± 2% | 261.4µ ± 1%    -0.68% (p=0.035) | 266.3µ ± 3%    ~ (p=0.265) | 261.5µ ± 1%    ~ (p=0.056) |
 
 #### Memory Consumption (B/op)
 
-| Metric   | Native     | ⚡ Transactor                 | Avito                          | Aneshas                       |
-|----------|------------|------------------------------|--------------------------------|-------------------------------|
-| **B/op** | 822.0 ± 3% | 895.5 ± 1%  +8.94% (p=0.000) | 1456.5 ± 1%  +77.19% (p=0.000) | 913.0 ± 1%  +11.07% (p=0.000) |
+| Metric   | Native     | ⚡ Transactor                   | Avito                            | Aneshas                         |
+|----------|------------|--------------------------------|----------------------------------|---------------------------------|
+| **B/op** | 822.0 ± 3% | 895.5 ± 1%    +8.94% (p=0.000) | 1456.5 ± 1%    +77.19% (p=0.000) | 913.0 ± 1%    +11.07% (p=0.000) |
 
 #### Allocation Count (allocs/op)
 
-| Metric        | Native     | ⚡ Transactor                  | Avito                         | Aneshas                       |
-|---------------|------------|-------------------------------|-------------------------------|-------------------------------|
-| **allocs/op** | 18.00 ± 0% | 21.00 ± 5%  +16.67% (p=0.000) | 33.00 ± 0%  +83.33% (p=0.000) | 21.00 ± 5%  +16.67% (p=0.000) |
+| Metric        | Native     | ⚡ Transactor                    | Avito                           | Aneshas                         |
+|---------------|------------|---------------------------------|---------------------------------|---------------------------------|
+| **allocs/op** | 18.00 ± 0% | 21.00 ± 5%    +16.67% (p=0.000) | 33.00 ± 0%    +83.33% (p=0.000) | 21.00 ± 5%    +16.67% (p=0.000) |
 
 ### Benchmark Analysis
 
@@ -326,9 +327,9 @@ significantly more allocations.
 
 - **native** demonstrates the best performance across all metrics.
 - **transactor** and **aneshas** add slight overhead in memory and allocations while maintaining comparable execution
-  times.
+    times.
 - **avito** significantly increases memory consumption and allocation count, which may be critical for high-load
-  systems.
+    systems.
 
 ## License
 
