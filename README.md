@@ -1,6 +1,8 @@
 # Transactor
 
-`Transactor` is a library for simplifying transaction management in Go. It provides the `Transactor[T any]` interface,
+`Transactor` is a library for simplifying transaction management in Go. 
+
+It provides the `Transactor[T any]` interface,
 which allows performing operations within a transaction while abstracting the transaction management logic.
 
 ## Installation
