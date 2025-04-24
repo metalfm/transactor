@@ -10,7 +10,7 @@ which allows performing operations within a transaction while abstracting the tr
 Add the library to your project along with the implementation for a specific database driver.
 
 ```bash
-go get github.com/metalfm/transactor
+go get github.com/metalfm/transactor/tr
 go get github.com/metalfm/transactor/driver/sql/trm
 ```
 
