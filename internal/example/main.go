@@ -18,12 +18,11 @@ func main() {
 	adapter := svc.NewAdapter(repoUser, repoOrder)
 	tr := trm.New(db, adapter)
 
-	service := app.NewService(tr, repoUser)
+	service := app.NewService(tr)
 
 	/*
 		ctx := context.Background()
 
-		service.FindUser(ctx, 1)
 		service.Create(ctx, "John Doe", []string{"item1", "item2"})
 	*/
 

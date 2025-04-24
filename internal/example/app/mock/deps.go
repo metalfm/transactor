@@ -13,72 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	app "github.com/metalfm/transactor/internal/example/app"
 	gomock "go.uber.org/mock/gomock"
 )
-
-// Mockrepo is a mock of repo interface.
-type Mockrepo struct {
-	ctrl     *gomock.Controller
-	recorder *MockrepoMockRecorder
-	isgomock struct{}
-}
-
-// MockrepoMockRecorder is the mock recorder for Mockrepo.
-type MockrepoMockRecorder struct {
-	mock *Mockrepo
-}
-
-// NewMockrepo creates a new mock instance.
-func NewMockrepo(ctrl *gomock.Controller) *Mockrepo {
-	mock := &Mockrepo{ctrl: ctrl}
-	mock.recorder = &MockrepoMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *Mockrepo) EXPECT() *MockrepoMockRecorder {
-	return m.recorder
-}
-
-// FindUserByID mocks base method.
-func (m *Mockrepo) FindUserByID(ctx context.Context, id int64) (app.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindUserByID", ctx, id)
-	ret0, _ := ret[0].(app.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindUserByID indicates an expected call of FindUserByID.
-func (mr *MockrepoMockRecorder) FindUserByID(ctx, id any) *MockrepoFindUserByIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByID", reflect.TypeOf((*Mockrepo)(nil).FindUserByID), ctx, id)
-	return &MockrepoFindUserByIDCall{Call: call}
-}
-
-// MockrepoFindUserByIDCall wrap *gomock.Call
-type MockrepoFindUserByIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockrepoFindUserByIDCall) Return(arg0 app.User, arg1 error) *MockrepoFindUserByIDCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockrepoFindUserByIDCall) Do(f func(context.Context, int64) (app.User, error)) *MockrepoFindUserByIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockrepoFindUserByIDCall) DoAndReturn(f func(context.Context, int64) (app.User, error)) *MockrepoFindUserByIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
 
 // MockrepoTx is a mock of repoTx interface.
 type MockrepoTx struct {

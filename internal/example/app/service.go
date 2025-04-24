@@ -7,24 +7,11 @@ import (
 )
 
 type Service[T repoTx] struct {
-	tr   tr.Transactor[T]
-	repo repo
+	tr tr.Transactor[T]
 }
 
-func NewService[T repoTx](
-	tr tr.Transactor[T],
-	repo repo,
-) *Service[T] {
-	return &Service[T]{tr, repo}
-}
-
-func (slf *Service[T]) FindUser(ctx context.Context, id int64) (User, error) {
-	u, err := slf.repo.FindUserByID(ctx, id)
-	if err != nil {
-		return User{}, fmt.Errorf("find user by id: %w", err)
-	}
-
-	return u, nil
+func NewService[T repoTx](tr tr.Transactor[T]) *Service[T] {
+	return &Service[T]{tr}
 }
 
 func (slf *Service[T]) Create(ctx context.Context, name string, items []string) error {

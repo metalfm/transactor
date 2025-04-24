@@ -3,13 +3,14 @@ package benchmark_test
 import (
 	"context"
 	"database/sql"
-	"github.com/aneshas/tx/v2/sqltx"
 	_ "github.com/lib/pq"
 	"github.com/metalfm/transactor/driver/sql/trm"
 	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
 
+	stdlibTransactor "github.com/Thiht/transactor/stdlib"
+	"github.com/aneshas/tx/v2/sqltx"
 	avito "github.com/avito-tech/go-transaction-manager/drivers/sql/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 
@@ -104,12 +105,34 @@ func BenchmarkSQLPostgres(b *testing.B) {
 			}
 		})
 	})
+	b.Run("tx=Thiht", func(b *testing.B) {
+		ctx := context.Background()
+
+		conn, cleanup := prepare(ctx, b)
+		defer cleanup()
+
+		transactor, dbGetter := stdlibTransactor.NewTransactor(conn, stdlibTransactor.NestedTransactionsSavepoints)
+		r := repo{dbGetter: dbGetter}
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				err := transactor.WithinTransaction(ctx, func(ctx context.Context) error {
+					return r.CreateThiht(ctx, "some user name")
+				})
+				require.NoError(b, err)
+			}
+		})
+	})
 }
 
 type repo struct {
-	db0    trm.Query
-	db1    *sql.DB
-	getter *avito.CtxGetter
+	db0      trm.Query
+	db1      *sql.DB
+	getter   *avito.CtxGetter
+	dbGetter stdlibTransactor.DBGetter
 }
 
 func (slf *repo) CreateNative(ctx context.Context, tx *sql.Tx, name string) error {
@@ -135,6 +158,11 @@ func (slf *repo) CreateAvito(ctx context.Context, name string) error {
 
 func (slf *repo) CreateAneshas(ctx context.Context, name string) error {
 	_, err := slf.conn(ctx).ExecContext(ctx, `INSERT INTO users (name) VALUES ($1)`, name)
+	return err
+}
+
+func (slf *repo) CreateThiht(ctx context.Context, name string) error {
+	_, err := slf.dbGetter(ctx).ExecContext(ctx, `INSERT INTO users (name) VALUES ($1)`, name)
 	return err
 }
 

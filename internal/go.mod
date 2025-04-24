@@ -8,6 +8,8 @@ require (
 )
 
 require (
+	github.com/Thiht/transactor v1.1.0 // indirect
+	github.com/aclements/go-moremath v0.0.0-20210112150236-f10218a38794 // indirect
 	github.com/aneshas/tx/v2 v2.3.0 // indirect
 	github.com/avito-tech/go-transaction-manager/drivers/sql/v2 v2.0.0 // indirect
 	github.com/avito-tech/go-transaction-manager/trm/v2 v2.0.0-rc9.2 // indirect
@@ -17,6 +19,9 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
+	golang.org/x/perf v0.0.0-20250414141303-3fc2b901edf3 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+tool golang.org/x/perf/cmd/benchstat
