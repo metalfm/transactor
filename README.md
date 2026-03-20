@@ -7,15 +7,27 @@ which allows performing operations within a transaction while abstracting the tr
 
 ## Installation
 
-Add the library to your project along with the implementation for a specific database driver.
+Add the core package to your project:
 
 ```bash
 go get github.com/metalfm/transactor/tr
+```
+
+Then install a driver implementation.
+
+### Using `database/sql`
+
+```bash
 go get github.com/metalfm/transactor/driver/sql/trm
+```
+
+### Using `sqlx`
+
+```bash
 go get github.com/metalfm/transactor/driver/sqlx/trm
 ```
 
-Currently, the `transactor` library supports working with the `sql.DB` driver from Go's standard library and `sqlx`.
+Currently, the `transactor` library supports the `database/sql` driver from Go's standard library and `sqlx`.
 Nothing prevents adding more drivers in the future, such as `pgx`, etc.
 
 ## Key Concepts
