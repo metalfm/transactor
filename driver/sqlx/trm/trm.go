@@ -2,17 +2,18 @@ package trm
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type impl[T any] struct {
-	db *sql.DB
+	db *sqlx.DB
 	wt withTx[T]
 }
 
 //nolint:revive // exported constructor intentionally returns hidden implementation type
-func New[T withTx[T]](db *sql.DB, wt T) *impl[T] {
+func New[T withTx[T]](db *sqlx.DB, wt T) *impl[T] {
 	return &impl[T]{
 		db: db,
 		wt: wt,
@@ -23,7 +24,7 @@ func (slf *impl[T]) InTx(
 	ctx context.Context,
 	fn func(repo T) error,
 ) error {
-	tx, err := slf.db.BeginTx(ctx, nil)
+	tx, err := slf.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
@@ -44,4 +45,4 @@ func (slf *impl[T]) InTx(
 	return nil
 }
 
-var _ Transaction = (*sql.Tx)(nil)
+var _ Transaction = (*sqlx.Tx)(nil)
