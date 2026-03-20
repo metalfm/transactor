@@ -11,6 +11,7 @@ type impl[T any] struct {
 	wt withTx[T]
 }
 
+//nolint:revive // exported constructor intentionally returns hidden implementation type
 func New[T withTx[T]](db *sql.DB, wt T) *impl[T] {
 	return &impl[T]{
 		db: db,
@@ -26,7 +27,9 @@ func (slf *impl[T]) InTx(
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	err = fn(slf.wt.WithTx(tx))
 	if err != nil {

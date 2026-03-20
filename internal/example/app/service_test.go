@@ -5,15 +5,17 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/metalfm/transactor/internal/example/app"
-	"github.com/metalfm/transactor/internal/example/app/mock"
-	"github.com/metalfm/transactor/trtest/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
+
+	"github.com/metalfm/transactor/internal/example/app"
+	mock_app "github.com/metalfm/transactor/internal/example/app/mock"
+	mock_tr "github.com/metalfm/transactor/trtest/mock"
 )
 
 type ServiceMock struct {
 	suite.Suite
+
 	ctx     context.Context
 	ctrl    *gomock.Controller
 	mockTx  *mock_app.MockrepoTx
@@ -29,7 +31,7 @@ func (slf *ServiceMock) SetupTest() {
 	mockTr.
 		EXPECT().
 		InTx(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(r *mock_app.MockrepoTx) error) error {
+		DoAndReturn(func(_ context.Context, fn func(r *mock_app.MockrepoTx) error) error {
 			return fn(slf.mockTx)
 		}).
 		AnyTimes()
