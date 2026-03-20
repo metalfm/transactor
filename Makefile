@@ -5,9 +5,6 @@ export
 # Read workspace modules from go.work and expand them into ./module/... targets.
 WORK_MODULES = $(shell go work edit -json | sed -n 's/.*"DiskPath": "\(.*\)".*/\1/p' | grep -v '^./tool$$' | awk '{print $$0 "/..."}' | xargs echo)
 
-work:
-	@go work init ./driver/sql/trm ./internal ./tool ./tr ./trtest
-
 up:
 	@docker compose up -d --remove-orphans
 
