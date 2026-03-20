@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  generate-check:
+  gen:
     name: Generate Check
     runs-on: ubuntu-latest
 
