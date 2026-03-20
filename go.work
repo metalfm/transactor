@@ -1,0 +1,9 @@
+go 1.26
+
+use (
+	./driver/sql/trm
+	./internal
+	./tool
+	./tr
+	./trtest
+)

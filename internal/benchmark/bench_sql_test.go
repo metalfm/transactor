@@ -3,11 +3,13 @@ package benchmark_test
 import (
 	"context"
 	"database/sql"
-	_ "github.com/lib/pq"
-	"github.com/metalfm/transactor/driver/sql/trm"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/require"
+
+	"github.com/metalfm/transactor/driver/sql/trm"
 
 	stdlibTransactor "github.com/Thiht/transactor/stdlib"
 	"github.com/aneshas/tx/v2/sqltx"

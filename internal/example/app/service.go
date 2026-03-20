@@ -3,19 +3,24 @@ package app
 import (
 	"context"
 	"fmt"
+
 	"github.com/metalfm/transactor/tr"
 )
 
-type Service[T repoTx] struct {
-	tr tr.Transactor[T]
+type Service struct {
+	inTx inTx
 }
 
-func NewService[T repoTx](tr tr.Transactor[T]) *Service[T] {
-	return &Service[T]{tr}
+func NewService[T repoTx](tr tr.Transactor[T]) *Service {
+	return &Service{
+		inTx: func(ctx context.Context, fn func(repoTx) error) error {
+			return tr.InTx(ctx, func(r T) error { return fn(r) })
+		},
+	}
 }
 
-func (slf *Service[T]) Create(ctx context.Context, name string, items []string) error {
-	err := slf.tr.InTx(ctx, func(r T) error {
+func (slf *Service) Create(ctx context.Context, name string, items []string) error {
+	err := slf.inTx(ctx, func(r repoTx) error {
 		err := r.CreateUser(ctx, name)
 		if err != nil {
 			return fmt.Errorf("create user: %w", err)
