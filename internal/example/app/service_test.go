@@ -3,12 +3,13 @@ package app_test
 import (
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/metalfm/transactor/internal/example/app"
 	"github.com/metalfm/transactor/internal/example/app/mock"
 	"github.com/metalfm/transactor/trtest/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
-	"testing"
 )
 
 type ServiceMock struct {
@@ -16,7 +17,7 @@ type ServiceMock struct {
 	ctx     context.Context
 	ctrl    *gomock.Controller
 	mockTx  *mock_app.MockrepoTx
-	service *app.Service[*mock_app.MockrepoTx]
+	service *app.Service
 }
 
 func (slf *ServiceMock) SetupTest() {

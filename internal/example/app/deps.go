@@ -8,3 +8,5 @@ type repoTx interface {
 	CreateUser(ctx context.Context, name string) error
 	CreateOrder(ctx context.Context, items []string) error
 }
+
+type inTx func(context.Context, func(repoTx) error) error

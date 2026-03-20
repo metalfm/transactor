@@ -181,8 +181,8 @@ func (slf *Adapter) WithTx(tx trm.Transaction) *Adapter {
 
 ### 5. Example Service
 
-The `Service` contains business logic and depends only on the `Transactor` and `repoTx` interfaces. It knows nothing
-about the internal structure of transactions, simplifying testing and isolating logic.
+The `Service` contains business logic and depends only on the local `repoTx` contract and a small transactional
+callback. It knows nothing about the internal structure of transactions, simplifying testing and isolating logic.
 
 Example:
 
@@ -202,16 +202,22 @@ type repoTx interface {
 	CreateOrder(ctx context.Context, items []string) error
 }
 
-type Service[T repoTx] struct {
-	tr tr.Transactor[T]
+type inTx func(context.Context, func(repoTx) error) error
+
+type Service struct {
+	inTx inTx
 }
 
-func NewService[T repoTx](tr tr.Transactor[T]) *Service[T] {
-	return &Service[T]{tr}
+func NewService[T repoTx](tr tr.Transactor[T]) *Service {
+	return &Service{
+		inTx: func(ctx context.Context, fn func(repoTx) error) error {
+			return tr.InTx(ctx, func(r T) error { return fn(r) })
+		},
+	}
 }
 
-func (slf *Service[T]) Create(ctx context.Context, name string, items []string) error {
-	err := slf.tr.InTx(ctx, func(r T) error {
+func (slf *Service) Create(ctx context.Context, name string, items []string) error {
+	err := slf.inTx(ctx, func(r repoTx) error {
 		err := r.CreateUser(ctx, name)
 		if err != nil {
 			return fmt.Errorf("create user: %w", err)

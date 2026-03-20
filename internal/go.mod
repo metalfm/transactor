@@ -1,6 +1,6 @@
 module github.com/metalfm/transactor/internal
 
-go 1.24.1
+go 1.26
 
 require (
 	github.com/Thiht/transactor v1.1.0
