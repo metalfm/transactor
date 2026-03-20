@@ -5,19 +5,18 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5"
+	"github.com/pashagolub/pgxmock/v5"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/metalfm/transactor/driver/sqlx/trm"
+	"github.com/metalfm/transactor/driver/pgx/trm"
 )
 
 type InTx struct {
 	suite.Suite
 
 	ctx  context.Context
-	db   *sqlx.DB
-	mock sqlmock.Sqlmock
+	mock pgxmock.PgxPoolIface
 	impl *trm.Impl[*mockWithTx]
 }
 
@@ -28,13 +27,12 @@ func (m *mockWithTx) WithTx(_ trm.Transaction) *mockWithTx {
 }
 
 func (slf *InTx) SetupTest() {
-	db, mock, err := sqlmock.New()
+	mock, err := pgxmock.NewPool()
 	slf.Require().NoError(err)
 
 	slf.ctx = context.Background()
 	slf.mock = mock
-	slf.db = sqlx.NewDb(db, "sqlmock")
-	slf.impl = trm.New(slf.db, &mockWithTx{})
+	slf.impl = trm.New(mock, &mockWithTx{})
 }
 
 func (slf *InTx) TearDownTest() {
@@ -42,8 +40,9 @@ func (slf *InTx) TearDownTest() {
 }
 
 func (slf *InTx) TestSuccess() {
-	slf.mock.ExpectBegin()
+	slf.mock.ExpectBeginTx(pgx.TxOptions{})
 	slf.mock.ExpectCommit()
+	slf.mock.ExpectRollback()
 
 	err := slf.impl.InTx(slf.ctx, func(_ *mockWithTx) error {
 		return nil
@@ -52,7 +51,7 @@ func (slf *InTx) TestSuccess() {
 }
 
 func (slf *InTx) TestRollbackOnError() {
-	slf.mock.ExpectBegin()
+	slf.mock.ExpectBeginTx(pgx.TxOptions{})
 	slf.mock.ExpectRollback()
 
 	err := slf.impl.InTx(slf.ctx, func(_ *mockWithTx) error {
@@ -64,7 +63,7 @@ func (slf *InTx) TestRollbackOnError() {
 }
 
 func (slf *InTx) TestBeginTxError() {
-	slf.mock.ExpectBegin().WillReturnError(errors.New("err"))
+	slf.mock.ExpectBeginTx(pgx.TxOptions{}).WillReturnError(errors.New("err"))
 
 	err := slf.impl.InTx(slf.ctx, func(_ *mockWithTx) error {
 		return nil
@@ -75,8 +74,9 @@ func (slf *InTx) TestBeginTxError() {
 }
 
 func (slf *InTx) TestCommitError() {
-	slf.mock.ExpectBegin()
+	slf.mock.ExpectBeginTx(pgx.TxOptions{})
 	slf.mock.ExpectCommit().WillReturnError(errors.New("err"))
+	slf.mock.ExpectRollback()
 
 	err := slf.impl.InTx(slf.ctx, func(_ *mockWithTx) error {
 		return nil

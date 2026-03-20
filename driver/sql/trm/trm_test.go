@@ -36,7 +36,9 @@ func (slf *InTx) SetupTest() {
 	slf.impl = trm.New(slf.db, &mockWithTx{})
 }
 
-func (slf *InTx) TearDownTest() {}
+func (slf *InTx) TearDownTest() {
+	slf.NoError(slf.mock.ExpectationsWereMet())
+}
 
 func (slf *InTx) TestSuccess() {
 	slf.mock.ExpectBegin()
@@ -45,9 +47,7 @@ func (slf *InTx) TestSuccess() {
 	err := slf.impl.InTx(slf.ctx, func(_ *mockWithTx) error {
 		return nil
 	})
-
-	slf.NoError(err)
-	slf.NoError(slf.mock.ExpectationsWereMet())
+	slf.Require().NoError(err)
 }
 
 func (slf *InTx) TestRollbackOnError() {
@@ -60,7 +60,6 @@ func (slf *InTx) TestRollbackOnError() {
 
 	slf.Require().Error(err)
 	slf.Require().EqualError(err, "trm callback: err")
-	slf.NoError(slf.mock.ExpectationsWereMet())
 }
 
 func (slf *InTx) TestBeginTxError() {
@@ -72,7 +71,6 @@ func (slf *InTx) TestBeginTxError() {
 
 	slf.Require().Error(err)
 	slf.Require().EqualError(err, "begin tx: err")
-	slf.NoError(slf.mock.ExpectationsWereMet())
 }
 
 func (slf *InTx) TestCommitError() {
@@ -85,7 +83,6 @@ func (slf *InTx) TestCommitError() {
 
 	slf.Require().Error(err)
 	slf.Require().EqualError(err, "commit tx: err")
-	slf.NoError(slf.mock.ExpectationsWereMet())
 }
 
 func TestInTx(t *testing.T) {
