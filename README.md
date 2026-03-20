@@ -27,8 +27,13 @@ go get github.com/metalfm/transactor/driver/sql/trm
 go get github.com/metalfm/transactor/driver/sqlx/trm
 ```
 
-Currently, the `transactor` library supports the `database/sql` driver from Go's standard library and `sqlx`.
-Nothing prevents adding more drivers in the future, such as `pgx`, etc.
+### Using `pgx`
+
+```bash
+go get github.com/metalfm/transactor/driver/pgx/trm
+```
+
+Currently, the `transactor` library supports the `database/sql` driver from Go's standard library, `sqlx`, and `pgx`.
 
 ## Key Concepts
 

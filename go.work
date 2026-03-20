@@ -1,6 +1,7 @@
 go 1.26
 
 use (
+	./driver/pgx/trm
 	./driver/sql/trm
 	./driver/sqlx/trm
 	./internal
