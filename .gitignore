@@ -1,4 +1,5 @@
 .DS_Store
 .idea
+BACKLOG.md
 go.work.sum
 .envrc
