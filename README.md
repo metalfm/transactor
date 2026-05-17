@@ -1,5 +1,10 @@
 # Transactor
 
+[![CI](https://github.com/metalfm/transactor/actions/workflows/ci.yml/badge.svg)](https://github.com/metalfm/transactor/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/metalfm/transactor/graph/badge.svg)](https://codecov.io/gh/metalfm/transactor)
+[![Go Report Card](https://goreportcard.com/badge/github.com/metalfm/transactor)](https://goreportcard.com/report/github.com/metalfm/transactor)
+[![Go Reference](https://pkg.go.dev/badge/github.com/metalfm/transactor.svg)](https://pkg.go.dev/github.com/metalfm/transactor)
+
 `Transactor` is a library for simplifying transaction management in Go.
 
 It provides the `Transactor[T any]` interface,

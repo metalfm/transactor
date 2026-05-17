@@ -2,8 +2,8 @@ include .env
 -include .envrc
 export
 
-# Read workspace modules from go.work and expand them into ./module/... targets.
-WORK_MODULES = $(shell go work edit -json | sed -n 's/.*"DiskPath": "\(.*\)".*/\1/p' | grep -v '^./tool$$' | awk '{print $$0 "/..."}' | xargs echo)
+WORK_MODULES = ./... ./internal/benchmark/... ./internal/example/...
+COVER_PACKAGES = ./tr/... ./driver/...
 
 up:
 	@docker compose up -d --remove-orphans
@@ -24,3 +24,6 @@ gen:
 
 test:
 	@go test -race $(WORK_MODULES)
+
+coverage:
+	@go test -race -covermode=atomic -coverprofile=coverage.out $(COVER_PACKAGES)

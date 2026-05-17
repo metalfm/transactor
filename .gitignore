@@ -2,4 +2,5 @@
 .idea
 BACKLOG.md
 go.work.sum
+coverage.out
 .envrc
