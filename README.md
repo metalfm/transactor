@@ -58,7 +58,7 @@ implementations while maintaining type safety at compile time.
 
 ```go
 type Transactor[T any] interface {
-InTx(ctx context.Context, fn func (T) error) error
+    InTx(ctx context.Context, fn func (T) error) error
 }
 ```
 
