@@ -12,30 +12,39 @@ which allows performing operations within a transaction while abstracting the tr
 
 ## Installation
 
-Add the core package to your project:
+Add the module to your project:
 
 ```bash
-go get github.com/metalfm/transactor/tr
+go get github.com/metalfm/transactor
 ```
 
-Then install a driver implementation.
+Then import the core package and the driver implementation your project uses.
 
 ### Using `database/sql`
 
-```bash
-go get github.com/metalfm/transactor/driver/sql/trm
+```go
+import (
+	"github.com/metalfm/transactor/tr"
+	"github.com/metalfm/transactor/driver/sql/trm"
+)
 ```
 
 ### Using `sqlx`
 
-```bash
-go get github.com/metalfm/transactor/driver/sqlx/trm
+```go
+import (
+	"github.com/metalfm/transactor/tr"
+	"github.com/metalfm/transactor/driver/sqlx/trm"
+)
 ```
 
 ### Using `pgx`
 
-```bash
-go get github.com/metalfm/transactor/driver/pgx/trm
+```go
+import (
+	"github.com/metalfm/transactor/tr"
+	"github.com/metalfm/transactor/driver/pgx/trm"
+)
 ```
 
 Currently, the `transactor` library supports the `database/sql` driver from Go's standard library, `sqlx`, and `pgx`.
@@ -49,7 +58,7 @@ implementations while maintaining type safety at compile time.
 
 ```go
 type Transactor[T any] interface {
-InTx(ctx context.Context, fn func (T) error) error
+    InTx(ctx context.Context, fn func (T) error) error
 }
 ```
 
