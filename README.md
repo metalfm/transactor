@@ -163,6 +163,26 @@ Using the factory method allows explicit transaction passing, making the code mo
 factory method `WithTx` returns a new instance of `*RepoUser`, and duck typing avoids importing interfaces into business
 logic.
 
+Be careful when implementing `WithTx`: the library cannot verify that the returned repository actually uses the provided
+transaction. Returning `nil`, returning the original repository, or returning a repository that still uses the original
+database connection can lead to runtime panics or queries executed outside the transaction.
+
+Incorrect implementation:
+
+```go
+func (slf *RepoUser) WithTx(tx trm.Transaction) *RepoUser {
+	return slf
+}
+```
+
+Correct implementation:
+
+```go
+func (slf *RepoUser) WithTx(tx trm.Transaction) *RepoUser {
+	return &RepoUser{q: tx}
+}
+```
+
 ### 3. Adapter for Repositories
 
 The adapter is not part of the `transactor` library but provides the ability to combine code from various repositories
@@ -362,6 +382,22 @@ and allocation count.
 - **aneshas** and **Thiht** show similar results, with `Thiht` consuming slightly more memory and allocations.
 
 ✅ **`transactor` remains an optimal choice** for projects requiring a balance between performance, memory consumption, and architectural clarity.
+
+## Design Trade-offs
+
+### Nested Transactions
+
+`transactor` does not support nested transactions by design. They are not needed for most application code and introduce
+additional complexity that tends to leak into business logic. In most cases, a single transaction boundary around a use
+case is enough. Compose several operations inside the same `InTx` callback instead of opening another transaction inside
+it.
+
+### Isolation Levels
+
+`transactor` intentionally does not expose transaction isolation level configuration. In most PostgreSQL-backed
+applications, [advisory locks](https://www.postgresql.org/docs/current/explicit-locking.html#ADVISORY-LOCKS) are a
+simpler and faster way to coordinate concurrent business operations, and they cover the common cases without adding
+isolation-level decisions to business logic.
 
 ## License
 
